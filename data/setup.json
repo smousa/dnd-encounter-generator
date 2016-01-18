@@ -1,0 +1,31 @@
+{
+    "space-and-marching-order": [
+        {
+            "name": "narrow",
+            "description": "narrow, single-file",
+            "max-roll": 2
+        }, {
+            "name": "standard",
+            "description": "standard, two-abreast",
+            "max-roll": 4
+        }, {
+            "name": "open",
+            "description": "large, open cavern",
+            "max-roll": 6
+        }
+    ],
+    "illumination": [
+        {
+            "name": "faezress",
+            "description": "the area is illuminated by faezress",
+            "max-roll": 2
+        }, {
+            "name": "dim",
+            "description": "the area is dimly lit by moss and lichen",
+            "max-roll": 4
+        }, {
+            "name": "dark",
+            "description": "the area is lit only by light sources provided by the characters",
+            "max-roll": 8
+        }
+}

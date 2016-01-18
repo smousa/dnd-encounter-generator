@@ -1,0 +1,36 @@
+{
+    "underdark-encounter": [
+        {
+            "name": "none",
+            "description": "no encounter",
+            "max-roll": 13
+        }, {
+            "name": "terrain",
+            "description": "terrain encounter",
+            "max-roll": 15,
+            "ref": ["terrain-encounter"]
+        }, {
+            "name": "creature",
+            "description": "creature encounter",
+            "max-roll": 17,
+            "ref": ["creature-encounter"]
+        }, {
+            "name": "terrain-creature",
+            "description": "terrain and creature encounter",
+            "max-roll": 20,
+            "ref": ["terrain-encounter", "creature-encounter"]
+        }
+    ],
+    "darklake-encounter": [],
+    "silkroad-encounter": [],
+    "terrain-encounter": [
+        {
+            "name": "boneyard",
+            "description": "",
+            "max-roll": 1,
+            "ref": ["boneyard-encounter"]
+        }, {
+            "name": "cliff-and-ladder"
+    ],
+    "creature-encounters": []
+}
