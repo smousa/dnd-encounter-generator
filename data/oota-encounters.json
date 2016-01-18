@@ -1,0 +1,204 @@
+{
+    "underdark-encounter": [
+        {
+            "name": "none",
+            "description": "no encounter",
+            "max-roll": 13
+        }, {
+            "name": "terrain",
+            "description": "terrain encounter",
+            "max-roll": 15,
+            "ref": ["terrain-encounter"]
+        }, {
+            "name": "creature",
+            "description": "creature encounter",
+            "max-roll": 17,
+            "ref": ["creature-encounter"]
+        }, {
+            "name": "terrain-creature",
+            "description": "terrain and creature encounter",
+            "max-roll": 20,
+            "ref": ["terrain-encounter", "creature-encounter"]
+        }
+    ],
+    "darklake-encounter": [],
+    "silkroad-encounter": [],
+    "terrain-encounter": [
+        {
+            "name": "boneyard",
+            "description": "",
+            "max-roll": 1,
+            "ref": ["boneyard-encounter"]
+        }, {
+            "name": "cliff-and-ladder",
+            "description": "",
+            "max-roll": 2
+        }, {
+            "name": "crystal-clusters",
+            "description": "",
+            "max-roll": 3
+        }, {
+            "name": "fungus-cavern",
+            "description": "",
+            "max-roll": 4
+        }, {
+            "name": "gas-leak",
+            "description": "",
+            "max-roll": 5
+        }, {
+            "name": "gorge",
+            "description": "",
+            "max-roll": 6
+        }, {
+            "name": "high-ledge",
+            "description": "",
+            "max-roll": 7
+        }, {
+            "name": "horrid-sounds",
+            "description": "",
+            "max-roll": 8
+        }, {
+            "name": "lava-swell",
+            "description": "",
+            "max-roll": 9
+        },{
+            "name": "muck-pit",
+            "description": "",
+            "max-roll": 10
+        }, {
+            "name": "rockfall",
+            "description": "",
+            "max-roll": 11
+        }, {
+            "name": "rope-bridge",
+            "description": "",
+            "max-roll": 12
+        }, {
+            "name": "ruins",
+            "description": "",
+            "max-roll": 13
+        }, {
+            "name": "shelter",
+            "description": "",
+            "max-roll": 14
+        }, {
+            "name": "sinkhole",
+            "description": "",
+            "max-roll": 15
+        }, {
+            "name": "slime-or-mold",
+            "description": "",
+            "max-roll": 16,
+            "ref": ["slime-or-mold-encounter"]
+        }, {
+            "name": "steam-vent",
+            "description": "",
+            "max-roll": 17
+        }, {
+            "name": "underground-stream",
+            "description": "",
+            "max-roll": 18
+        }, {
+            "name": "warning-sign",
+            "description": "",
+            "max-roll": 19,
+            "ref": ["warning-sign-encounter"]
+        }, {
+            "name": "webs",
+            "description": "",
+            "max-roll": 20,
+            "ref": ["webs-encounter"]
+        }
+    ],
+    "creature-encounter": [
+        {
+            "name": "ambushers",
+            "description": "",
+            "max-roll": 2,
+            "ref": ["ambushers-encounter"]
+        }, {
+            "name": "carrion-crawler",
+            "description": "",
+            "max-roll": 3
+        }, {
+            "name": "escaped-slaves",
+            "description": "",
+            "max-roll": 5
+        }, {
+            "name": "fungi",
+            "description": "",
+            "max-roll": 7,
+            "ref": ["fungi-encounter"]
+        }, {
+            "name": "giant-fire-beetles",
+            "description": "",
+            "max-roll": 9,
+            "creature-ref": [
+                {
+                    "id": "giant-fire-beetle",
+                    "qty": "4d6"
+                }
+            ]
+        }, {
+            "name": "giant-rocktopus",
+            "description": "",
+            "max-roll": 11,
+            "creature-ref": [
+                {
+                    "id": "giant-rocktopus",
+                    "qty": 1
+                }
+            ]
+        }, {
+            "name": "mad-creature",
+            "description": "",
+            "max-roll": 12,
+            "ref": ["mad-creature-encounter"]
+        }, {
+            "name": "ochre-jelly",
+            "description": "",
+            "max-roll": 13,
+            "creature-ref": [
+                {
+                    "id": "ochre-jelly",
+                    "qty": 1
+                }
+            ]
+        }, {
+            "name": "raiders",
+            "description": "",
+            "max-roll": 15,
+            "ref": ["raiders-encounter"]
+        }, {
+            "name": "scouts",
+            "description": "",
+            "max-roll": 16,
+            "ref": ["scouts-encounter"]
+        }, {
+            "name": "society-of-brillance",
+            "description": "",
+            "max-roll": 17,
+            "ref": ["society-of-brillance-encounter"]
+        }, {
+            "name": "spore-servants",
+            "description": "",
+            "max-roll": 18,
+            "ref": ["spore-servants-encounter"]
+        }, {
+            "name": "traders",
+            "description": "",
+            "max-roll": 20,
+            "ref": ["traders-encounter"]
+        }
+    ],
+    "boneyard-encounter": [],
+    "slime-or-mold-encounter": [],
+    "ambushers-encounter": [],
+    "fungi-encounter": [],
+    "mad-creature-encounter": [],
+    "raiders-encounter": [],
+    "scouts-encounter": [],
+    "society-of-brillance-encounter": [],
+    "spore-servants-encounter": [],
+    "traders-encounter": []
+}
