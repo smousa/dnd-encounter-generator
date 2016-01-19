@@ -82,6 +82,10 @@ func Number(data []byte) (int, bool) {
 	}
 }
 
+func TrimParen(data []byte) []byte {
+	return bytes.TrimLeft(bytes.TrimRight(data, ")"), "(")
+}
+
 func Compute(exec []byte) (int, error) {
 	phrase, err := compile(exec)
 	if err != nil {
@@ -89,14 +93,14 @@ func Compute(exec []byte) (int, error) {
 	}
 	bNum, ok := Number(phrase.B)
 	if !ok {
-		if bNum, err = Compute(phrase.B); err != nil {
+		if bNum, err = Compute(TrimParen(phrase.B)); err != nil {
 			return 0, err
 		}
 	}
 	if phrase.Op != nil {
 		aNum, ok := Number(phrase.A)
 		if !ok {
-			if aNum, err = Compute(phrase.A); err != nil {
+			if aNum, err = Compute(TrimParen(phrase.A)); err != nil {
 				return 0, err
 			}
 		}
