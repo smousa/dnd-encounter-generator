@@ -1,183 +1,129 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"math/rand"
 	"strconv"
-	"time"
 	"unicode"
 )
 
+// SyntaxError is an error type
 type SyntaxError string
 
 func (s SyntaxError) Error() string {
 	return fmt.Sprintf("syntax error: %s", s)
 }
 
-func IsDigit(b byte) bool      { return unicode.IsDigit(rune(b)) }
-func IsSpace(b byte) bool      { return unicode.IsSpace(rune(b)) }
-func IsOpenParen(b byte) bool  { return b == '(' }
+// IsDigit returns true if a byte is a digit
+func IsDigit(b byte) bool { return unicode.IsDigit(rune(b)) }
+
+// IsSpace returns true if a byte is whitespace
+func IsSpace(b byte) bool { return unicode.IsSpace(rune(b)) }
+
+// IsOpenParen returns true if a byte is an open parenthesis
+func IsOpenParen(b byte) bool { return b == '(' }
+
+// IsCloseParen returns true if a byte is a closed parenthesis
 func IsCloseParen(b byte) bool { return b == ')' }
 
-const (
-	Add  Operator = '+'
-	Sub  Operator = '-'
-	Mult Operator = '*'
-	Roll Operator = 'd'
-)
-
-type Operator byte
-
-func IsOperator(b byte) bool {
-	return Operator(b).Order() > 0
-}
-
-func (op Operator) Value(a, b int) (int, error) {
-	switch op {
-	case Add:
-		return a + b, nil
-	case Sub:
-		return a - b, nil
-	case Mult:
-		return a * b, nil
-	case Roll:
-		if a > 0 && b > 0 {
-			sum := 0
-			for i := 0; i < a; i++ {
-				rand.Seed(time.Now().UnixNano())
-				sum += (rand.Int() % b) + 1
-			}
-			return sum, nil
-		}
-	}
-	return 0, errors.New("cannot compute")
-}
-
-func (op Operator) Order() int {
-	switch op {
-	case Add, Sub:
-		return 1
-	case Mult:
-		return 2
-	case Roll:
-		return 3
-	}
-	return 0
-}
-
-type Term struct {
-	Value    int
-	Operator Operator
-}
-
-func Reduce(terms ...Term) ([]Term, error) {
-	switch len(terms) {
-	case 0, 1:
-		return terms, nil
-	case 2:
-		t, err := terms[0].Compute(terms[1])
-		if err != nil {
-			return nil, err
-		}
-		return []Term{t}, nil
-	}
-	for len(terms) > 2 {
-		if terms[0].Order() >= terms[1].Order() {
-			t, err := terms[0].Compute(terms[1])
-			if err != nil {
-				return nil, err
-			}
-			terms = append([]Term{t}, terms[2:]...)
-		} else {
-			t, err := terms[1].Compute(terms[2])
-			if err != nil {
-				return nil, err
-			}
-			terms = append([]Term{t}, terms[3:]...)
-		}
-	}
-	return terms, nil
-}
-
-func (a Term) Compute(b Term) (t Term, err error) {
-	v, err := a.Operator.Value(a.Value, b.Value)
-	if err != nil {
-		return
-	}
-	return Term{Value: v, Operator: b.Operator}, nil
-}
-
-func (a Term) Order() int {
-	return a.Operator.Order()
-}
-
+// Phrase describes a piece of the equation
 type Phrase struct {
 	Equation []byte
 }
 
-func (p Phrase) Compute(index int) (value int, idx int, err error) {
-	var isOpenParen bool
-	var terms []Term
-	for idx = index; idx < len(p.Equation); idx++ {
+// Calculate computes the value of the equation
+func Evaluate(equation []byte) (int, error) {
+	v, err := Phrase{equation}.Eval()
+	return v, err
+}
+
+// Eval computes the value of an equation
+func (p Phrase) Eval() (int, error) {
+	v, _, err := p.eval(-1)
+	return v, err
+}
+
+// eval uses recursion to compute the value of the equation from certain
+// indices. A -1 index indicates that this is the root calculation
+func (p Phrase) eval(index int) (value int, idx int, err error) {
+	var isOpen bool  // are we evaluating the equation from within a context?
+	var terms []Term // terms of the equation
+	// set the idx start value
+	if index < 0 {
+		idx = 0
+	} else {
+		idx = index
+	}
+	for idx < len(p.Equation) {
+		numTerms := len(terms)
 		c := p.Equation[idx]
 		if IsOpenParen(c) {
-			if isOpenParen {
-				value, idx, err = p.Compute(idx)
+			if index < 0 || numTerms > 0 || isOpen {
+				// evaluate within a new context
+				value, idx, err = p.eval(idx)
 				if err != nil {
 					return
 				}
-				if num := len(terms); num > 0 && terms[num-1].Operator.Order() == 0 {
-					return 0, 0, SyntaxError(fmt.Sprintf("at char %d: missing operator", idx))
+				if numTerms > 0 && Order(terms[numTerms-1]) <= 0 {
+					// satisfies use case of x(y+z) = x*(y+z)
+					terms[numTerms-1].Operator = Operator('*')
 				}
-				terms = append(terms, Term{Value: value})
+				terms = append(terms, Term{Operand: value})
+			} else {
+				// the context is in the scope of the parenthetical value
+				isOpen = true
 			}
-			isOpenParen = true
 		} else if IsCloseParen(c) {
-			if !isOpenParen {
+			// end of context, exit loop
+			if isOpen {
+				isOpen = false
+				break
+			} else {
 				return 0, 0, SyntaxError(fmt.Sprintf("at char %d: missing '('", idx))
 			}
-			isOpenParen = false
-			break
 		} else if IsOperator(c) {
-			num := len(terms)
-			if num == 0 || terms[num-1].Operator.Order() > 0 {
-				return 0, 0, SyntaxError(fmt.Sprintf("at char %d: missing operand", idx))
+			op := Operator(c)
+			if numTerms == 0 || Order(terms[numTerms-1]) > 0 {
+				// satisfies use cases of 5 + + 4 (error) and 5 + d6 (ok)
+				v, err := op.Default()
+				if err != nil {
+					return 0, 0, SyntaxError(fmt.Sprintf("at char %d: missing operator", idx))
+				}
+				terms = append(terms, Term{Operand: v, Operator: op})
+			} else {
+				terms[numTerms-1].Operator = op
 			}
-			terms[num-1].Operator = Operator(c)
 		} else if IsDigit(c) {
-			if num := len(terms); num > 0 && terms[num-1].Operator.Order() == 0 {
+			// satisfies use case 4 5 (error)
+			if numTerms > 0 && Order(terms[numTerms-1]) <= 0 {
 				return 0, 0, SyntaxError(fmt.Sprintf("at char %d: missing operator", idx))
 			}
 			value, idx, err = p.getNumber(idx)
 			if err != nil {
 				return
 			}
-			terms = append(terms, Term{Value: value})
+			terms = append(terms, Term{Operand: value})
 		} else if IsSpace(c) {
+			// ignore spaces
 			continue
 		} else {
+			// all other charaters are bogus
 			return 0, 0, SyntaxError(fmt.Sprintf("at char %d: unknown operator '%s'", idx, c))
 		}
-		if len(terms) == 3 {
-			if terms, err = Reduce(terms...); err != nil {
-				return 0, 0, err
-			}
-		}
+		idx++
 	}
-	if num := len(terms); num == 0 {
+	if numTerms := len(terms); numTerms == 0 {
 		return 0, 0, SyntaxError(fmt.Sprintf("at char %d: no data to evaluate", idx))
-	} else if terms[num-1].Operator.Order() > 0 {
+	} else if Order(terms[numTerms-1]) > 0 {
 		return 0, 0, SyntaxError(fmt.Sprintf("at char %d: missing operand", idx))
 	}
-	for len(terms) > 1 {
-		if terms, err = Reduce(terms...); err != nil {
-			return 0, 0, err
-		}
+	value, err = Reduce(terms...)
+	if err != nil {
+		return 0, 0, err
 	}
-	return terms[0].Value, idx, nil
+	return
 }
 
+// getNumber returns the numerical value of the phrase at a given index
 func (p Phrase) getNumber(index int) (value int, idx int, err error) {
 	var operand []byte
 	for idx = index; idx < len(p.Equation); idx++ {
