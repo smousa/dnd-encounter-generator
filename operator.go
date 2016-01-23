@@ -28,7 +28,7 @@ func (op AddOp) Eval(a, b int) (int, error) { return a + b, nil }
 // SubOp is an aritmetic subtract
 type SubOp struct{}
 
-func (op SubOp) Default() (int, error)      { return 0, ErrNotSupported }
+func (op SubOp) Default() (int, error)      { return 0, nil }
 func (op SubOp) Value(a int) (int, error)   { return 0, ErrNotSupported }
 func (op SubOp) Eval(a, b int) (int, error) { return a - b, nil }
 
@@ -42,14 +42,8 @@ func (op MultOp) Eval(a, b int) (int, error) { return a * b, nil }
 // RollOp rolls an n-sided die x times
 type RollOp struct{}
 
-func (op RollOp) Default() (int, error) { return 1, nil }
-func (op RollOp) Value(a int) (int, error) {
-	if a <= 0 {
-		return 0, ErrBadRoll
-	}
-	rand.Seed(time.Now().UnixNano())
-	return (rand.Int() % a) + 1, nil
-}
+func (op RollOp) Default() (int, error)    { return 1, nil }
+func (op RollOp) Value(a int) (int, error) { return 0, ErrNotSupported }
 func (op RollOp) Eval(a, b int) (int, error) {
 	if a <= 0 || b <= 0 {
 		return 0, ErrBadRoll
@@ -65,7 +59,7 @@ func (op RollOp) Eval(a, b int) (int, error) {
 // NoOp is an arithmetic equality
 type NoOp struct{}
 
-func (op NoOp) Default() (int, error)      { return 0, nil }
+func (op NoOp) Default() (int, error)      { return 0, ErrNotSupported }
 func (op NoOp) Value(a int) (int, error)   { return a, nil }
 func (op NoOp) Eval(a, b int) (int, error) { return 0, ErrNotSupported }
 
@@ -74,10 +68,10 @@ type Operator byte
 
 // IsOperator returns true if a given byte can be translated into an op
 func IsOperator(b byte) bool {
-	return Operator(b).getOp() != nil
+	return Operator(b).get() != nil
 }
 
-func (o Operator) getOp() Op {
+func (o Operator) get() Op {
 	switch o {
 	case '+':
 		return AddOp{}
@@ -96,7 +90,7 @@ func (o Operator) getOp() Op {
 
 // Order returns the hierarchical order of a given operation
 func (o Operator) Order() int {
-	switch o.getOp().(type) {
+	switch o.get().(type) {
 	case NoOp:
 		return 0
 	case AddOp, SubOp:
@@ -111,21 +105,21 @@ func (o Operator) Order() int {
 }
 
 func (o Operator) Default() (int, error) {
-	if op := o.getOp(); op != nil {
+	if op := o.get(); op != nil {
 		return op.Default()
 	}
 	return 0, ErrNotSupported
 }
 
 func (o Operator) Value(a int) (int, error) {
-	if op := o.getOp(); op != nil {
+	if op := o.get(); op != nil {
 		return op.Value(a)
 	}
 	return 0, ErrNotSupported
 }
 
 func (o Operator) Eval(a, b int) (int, error) {
-	if op := o.getOp(); op != nil {
+	if op := o.get(); op != nil {
 		return op.Eval(a, b)
 	}
 	return 0, ErrNotSupported

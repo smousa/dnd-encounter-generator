@@ -27,6 +27,15 @@ func (a Term) Value() (int, error) {
 	return a.Operator.Value(a.Operand)
 }
 
+// Default returns a term given a its default operand.
+func Default(op Operator) (Term, error) {
+	val, err := op.Default()
+	if err != nil {
+		return Term{}, nil
+	}
+	return Term{Operand: val, Operator: op}, nil
+}
+
 // Order returns the hierarchical order of the term
 func Order(term Term) int {
 	return term.Operator.Order()

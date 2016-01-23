@@ -45,8 +45,9 @@ func (p Phrase) Eval() (int, error) {
 // eval uses recursion to compute the value of the equation from certain
 // indices. A -1 index indicates that this is the root calculation
 func (p Phrase) eval(index int) (value int, idx int, err error) {
-	var isOpen bool  // are we evaluating the equation from within a context?
-	var terms []Term // terms of the equation
+	var isOpen bool    // are we evaluating the equation from within a context?
+	var isDefault bool // did we default on the previous term?
+	var terms []Term   // terms of the equation
 	// set the idx start value
 	if index < 0 {
 		idx = 0
@@ -68,6 +69,7 @@ func (p Phrase) eval(index int) (value int, idx int, err error) {
 					terms[numTerms-1].Operator = Operator('*')
 				}
 				terms = append(terms, Term{Operand: value})
+				isDefault = false
 			} else {
 				// the context is in the scope of the parenthetical value
 				isOpen = true
@@ -84,11 +86,12 @@ func (p Phrase) eval(index int) (value int, idx int, err error) {
 			op := Operator(c)
 			if numTerms == 0 || Order(terms[numTerms-1]) > 0 {
 				// satisfies use cases of 5 + + 4 (error) and 5 + d6 (ok)
-				v, err := op.Default()
-				if err != nil {
+				t, err := Default(op)
+				if err != nil || !isDefault {
 					return 0, 0, SyntaxError(fmt.Sprintf("at char %d: missing operator", idx))
 				}
-				terms = append(terms, Term{Operand: v, Operator: op})
+				terms = append(terms, t)
+				isDefault = true
 			} else {
 				terms[numTerms-1].Operator = op
 			}
@@ -102,6 +105,7 @@ func (p Phrase) eval(index int) (value int, idx int, err error) {
 				return
 			}
 			terms = append(terms, Term{Operand: value})
+			isDefault = false
 		} else if IsSpace(c) {
 			// ignore spaces
 			continue
