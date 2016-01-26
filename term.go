@@ -31,7 +31,7 @@ func (a Term) Value() (int, error) {
 func Default(op Operator) (Term, error) {
 	val, err := op.Default()
 	if err != nil {
-		return Term{}, nil
+		return Term{}, err
 	}
 	return Term{Operand: val, Operator: op}, nil
 }

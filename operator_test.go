@@ -25,7 +25,7 @@ func (s *OperatorTestSuite) TestAdd(c *C) {
 
 func (s *OperatorTestSuite) doSub(c *C, op Op) {
 	value, err := op.Default()
-	c.Check(err, IsNil)
+	c.Check(err, Equals, ErrNotSupported)
 	c.Check(value, Equals, 0)
 	value, err = op.Value(1)
 	c.Check(err, Equals, ErrNotSupported)

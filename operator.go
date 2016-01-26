@@ -28,7 +28,7 @@ func (op AddOp) Eval(a, b int) (int, error) { return a + b, nil }
 // SubOp is an aritmetic subtract
 type SubOp struct{}
 
-func (op SubOp) Default() (int, error)      { return 0, nil }
+func (op SubOp) Default() (int, error)      { return 0, ErrNotSupported }
 func (op SubOp) Value(a int) (int, error)   { return 0, ErrNotSupported }
 func (op SubOp) Eval(a, b int) (int, error) { return a - b, nil }
 
