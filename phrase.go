@@ -13,6 +13,11 @@ func (s SyntaxError) Error() string {
 	return fmt.Sprintf("syntax error: %s", s)
 }
 
+func IsSyntaxError(err error) bool {
+	_, ok := err.(SyntaxError)
+	return ok
+}
+
 // IsDigit returns true if a byte is a digit
 func IsDigit(b byte) bool { return unicode.IsDigit(rune(b)) }
 
@@ -50,7 +55,6 @@ func (p Phrase) eval(index int) (value int, idx int, err error) {
 	var isNegative bool // is it a negative number?
 
 	var terms []Term // terms of the equation
-	// set the idx start value
 	if index < 0 {
 		idx = 0
 	} else {
@@ -60,7 +64,7 @@ func (p Phrase) eval(index int) (value int, idx int, err error) {
 		numTerms := len(terms)
 		c := p.Equation[idx]
 		if IsOpenParen(c) {
-			if index < 0 || numTerms > 0 || isOpen {
+			if index < 0 || isOpen {
 				// evaluate within a new context
 				value, idx, err = p.eval(idx)
 				if err != nil {
@@ -70,8 +74,12 @@ func (p Phrase) eval(index int) (value int, idx int, err error) {
 					// satisfies use case of x(y+z) = x*(y+z)
 					terms[numTerms-1].Operator = Operator('*')
 				}
+				if isNegative {
+					value = -value
+				}
 				terms = append(terms, Term{Operand: value})
 				isDefault = false
+				isNegative = false
 			} else {
 				// the context is in the scope of the parenthetical value
 				isOpen = true
@@ -87,17 +95,24 @@ func (p Phrase) eval(index int) (value int, idx int, err error) {
 		} else if IsOperator(c) {
 			op := Operator(c)
 			if numTerms == 0 || Order(terms[numTerms-1]) > 0 {
-				if isDefault || isNegative {
-					return 0, 0, SyntaxError(fmt.Sprintf("at char %d: missing operator", idx))
-				}
 				if c == '-' {
+					if isNegative {
+						return 0, 0, SyntaxError(fmt.Sprintf("at char %d: missing operator", idx))
+					}
 					// set negative value
 					isNegative = true
 				} else {
+					if isDefault {
+						return 0, 0, SyntaxError(fmt.Sprintf("at char %d: missing operator", idx))
+					}
 					// get the default value for the term
 					t, err := Default(op)
 					if err != nil {
 						return 0, 0, SyntaxError(fmt.Sprintf("at char %d: missing operator", idx))
+					}
+					if isNegative {
+						t.Operand = -t.Operand
+						isNegative = false
 					}
 					terms = append(terms, t)
 					isDefault = true
@@ -122,7 +137,6 @@ func (p Phrase) eval(index int) (value int, idx int, err error) {
 			isDefault = false
 		} else if IsSpace(c) {
 			// ignore spaces
-			continue
 		} else {
 			// all other charaters are bogus
 			return 0, 0, SyntaxError(fmt.Sprintf("at char %d: unknown operator '%s'", idx, c))
@@ -156,5 +170,5 @@ func (p Phrase) getNumber(index int) (value int, idx int, err error) {
 	if err != nil {
 		return 0, 0, err
 	}
-	return int(v), idx, nil
+	return int(v), idx - 1, nil
 }

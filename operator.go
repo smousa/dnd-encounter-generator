@@ -51,7 +51,7 @@ func (op RollOp) Eval(a, b int) (int, error) {
 	total := 0
 	for i := 0; i < a; i++ {
 		rand.Seed(time.Now().UnixNano())
-		total += (rand.Int() % a) + 1
+		total += (rand.Int() % b) + 1
 	}
 	return total, nil
 }
